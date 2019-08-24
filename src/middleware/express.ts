@@ -42,7 +42,8 @@ export interface MiddlewareReturnType {
  * Express middleware
  */
 export async function middleware(
-  options?: MiddlewareOptions
+  options?: MiddlewareOptions,
+  additionalFields?: object
 ): Promise<MiddlewareReturnType> {
   const defaultOptions = {logName: 'bunyan_log', level: 'info'};
   options = Object.assign({}, defaultOptions, options);
@@ -55,10 +56,12 @@ export async function middleware(
       logName: `${options.logName}_${APP_LOG_SUFFIX}`,
     })
   );
-  const logger = bunyan.createLogger({
-    name: `${options.logName}_${APP_LOG_SUFFIX}`,
-    streams: [loggingBunyanApp.stream(options.level as types.LogLevel)],
-  });
+  const logger = bunyan.createLogger(
+    Object.assign({}, additionalFields || {}, {
+      name: `${options.logName}_${APP_LOG_SUFFIX}`,
+      streams: [loggingBunyanApp.stream(options.level as types.LogLevel)],
+    })
+  );
 
   const auth = loggingBunyanApp.stackdriverLog.logging.auth;
   const [env, projectId] = await Promise.all([
